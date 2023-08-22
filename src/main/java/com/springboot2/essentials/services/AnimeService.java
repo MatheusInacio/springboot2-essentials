@@ -2,13 +2,14 @@ package com.springboot2.essentials.services;
 
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.springboot2.essentials.api.dto.AnimeDTO;
 import com.springboot2.essentials.api.dto.AnimeUpdateDTO;
 import com.springboot2.essentials.domain.Anime;
+import com.springboot2.essentials.exception.BadRequestException;
+import com.springboot2.essentials.mapper.AnimeMapper;
 import com.springboot2.essentials.repository.AnimeRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -25,21 +26,28 @@ public class AnimeService {
 
     public Anime findById(Long id) {
         return animeRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "Anime not found"));
+                .orElseThrow(() -> new BadRequestException("Anime not found"));
     }
 
+    public List<Anime> findByName(String name) {
+        return animeRepository.findByNameLike("%" + name + "%");
+    }
+
+    @Transactional
     public Anime save(AnimeDTO anime) {
-        return animeRepository.save(Anime.builder().name(anime.getName()).build());
+        return animeRepository.save(AnimeMapper.INSTANCE.toAnime(anime));
     }
 
     public void delete(long id) {
         animeRepository.deleteById(id);
     }
 
-    public Anime update(AnimeUpdateDTO anime) {
-        Anime savedAnime = findById(anime.getId());
-        animeRepository.save(Anime.builder().id(savedAnime.getId()).name(anime.getName()).build());
+    @Transactional
+    public Anime update(AnimeUpdateDTO animeUpdateDTO) {
+        Anime savedAnime = findById(animeUpdateDTO.getId());
+        Anime anime = AnimeMapper.INSTANCE.toAnime(animeUpdateDTO);
+        anime.setId(savedAnime.getId());
+        animeRepository.save(anime);
         return findById(savedAnime.getId());
     }
 

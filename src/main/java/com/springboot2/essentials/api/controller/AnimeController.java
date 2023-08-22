@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.springboot2.essentials.api.dto.AnimeDTO;
@@ -20,6 +21,7 @@ import com.springboot2.essentials.domain.Anime;
 import com.springboot2.essentials.services.AnimeService;
 import com.springboot2.essentials.util.DateUtils;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -44,13 +46,19 @@ public class AnimeController {
         return ResponseEntity.ok(animeService.findById(id));
     }
 
+     @GetMapping(path = "/find")
+    public ResponseEntity<List<Anime>> findById(@RequestParam String name) {
+        log.info(dateUtils.formatLocalDateTimeToDatabaseStyle(LocalDateTime.now()));
+        return ResponseEntity.ok(animeService.findByName(name));
+    }
+
     @PostMapping
-    public ResponseEntity<Anime> save(@RequestBody AnimeDTO anime) {
+    public ResponseEntity<Anime> save(@RequestBody @Valid AnimeDTO anime) {
         return new ResponseEntity<>(animeService.save(anime), HttpStatus.CREATED);
     }
 
     @PutMapping
-    public ResponseEntity<Anime> update(@RequestBody AnimeUpdateDTO anime) {
+    public ResponseEntity<Anime> update(@RequestBody @Valid AnimeUpdateDTO anime) {
         return new ResponseEntity<>(animeService.update(anime), HttpStatus.OK);
     }
 
